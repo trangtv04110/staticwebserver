@@ -3,16 +3,28 @@ const http = require('http');
 const fs = require('fs');
 const url = require('url');
 
+function htmlEscape(str) {
+	return String(str)
+		.replace(/&/g, '&amp;')
+		.replace(/"/g, '&quot;')
+		.replace(/'/g, '&#39;')
+		.replace(/</g, '&lt;')
+		.replace(/>/g, '&gt;');
+}
+
 function writeFile(res, path) {
 	let extension = path.split('.').pop().toLowerCase();
 	var contentType;
+	var viewClass;
 	switch(extension) {
 		case 'js':
 			contentType = 'text/javascript';
+			viewClass = 'language-javascript';
 			break;
 		case 'htm':
 		case 'html':
 			contentType = 'text/html';
+			viewClass = 'language-html';
 			break;
 		case 'jpg':
 		case 'jpeg':
@@ -23,25 +35,33 @@ function writeFile(res, path) {
 			break;
 		case 'css':
 			contentType = 'text/css';
+			viewClass = 'language-css';
 			break;
 		default:
 			contentType = 'unknown';
 			res.end();
 			return;
 	}
-	res.writeHead(200, {'Content-Type': contentType});
 
-	let stream = fs.createReadStream('.' + path);
-	stream.on('open', function() {
-		stream.pipe(res);
-	});
+	if(viewClass && !path.includes('lib')) {
+		contentType = 'text/html';
+		res.writeHead(200, {'Content-Type': contentType});
+		res.write('<pre><code class="' + viewClass + '">');
+	} else {
+		res.writeHead(200, {'Content-Type': contentType});
+	}
 
-	stream.on('end', function() {
-	});
-
-	stream.on('error', function(err) {
-		console.log('Error at: .' + path);
-		res.end(err);
+	fs.readFile('.' + path, function (err, data) {
+		if (err) throw err;
+		if(viewClass && !path.includes('lib')) {
+			data = htmlEscape(data);
+			res.write(data);
+			res.write('</code></pre><link rel="stylesheet" type="text/css" href="lib/monokai_sublime.css"><script type="text/javascript" src="http://code.jquery.com/jquery-2.1.4.min.js"></script><script type="text/javascript" src="lib/highlight.pack.js"></script><script type="text/javascript">$(document).ready(function() {$("pre code").each(function(i, block) {hljs.configure({tabReplace: "    "});hljs.highlightBlock(block);});});</script>');
+			res.end();
+			return;
+		}
+		res.write(data);
+		res.end();
 	});
 }
 
