@@ -19,12 +19,12 @@ function writeFile(res, path) {
 	switch(extension) {
 		case 'js':
 			contentType = 'text/javascript';
-			viewClass = 'language-javascript';
+			viewClass = 'javascript';
 			break;
 		case 'htm':
 		case 'html':
 			contentType = 'text/html';
-			viewClass = 'language-html';
+			viewClass = 'html';
 			break;
 		case 'jpg':
 		case 'jpeg':
@@ -35,7 +35,7 @@ function writeFile(res, path) {
 			break;
 		case 'css':
 			contentType = 'text/css';
-			viewClass = 'language-css';
+			viewClass = 'css';
 			break;
 		default:
 			contentType = 'unknown';
